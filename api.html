@@ -1,0 +1,178 @@
+<html>
+<head>
+    <title>Battleship API</title>
+    <style>
+        .code-comment { font-weight: bold; color: blue; }
+    </style>
+</head>
+<body bgcolor="white" text="black">
+<div style="text-align: center">
+    <h1>Battleship API</h1>
+    <h3 style="font-style: italic">Code Smackdown</h3>
+    <h3>Toby Nance</h3>
+</div>
+
+<p>
+    All communication between the server and the clients is
+    via standard in and standard out. Player name is passed
+    to the client program as a command line argument.
+</p>
+
+<p>
+    All communication will follow the following format:
+</p>
+
+<pre>
+    |MESSAGE_TYPE|MESSAGE_KEY|DATA|END|
+</pre>
+
+<p>
+    There is a newline after the last bar after END.
+    Data can have multiple fields in it, or not be included at all.
+</p>
+
+<table border="1" cellpadding="4">
+    <tbody>
+    <tr>
+        <th colspan="3">MESSAGE_TYPE</th>
+    </tr>
+    <tr>
+        <td>INFO</td>
+        <td>Server to Client</td>
+        <td>Informs client of something. No response expected.</td>
+    </tr>
+    <tr>
+        <td>QUERY</td>
+        <td>Server to Client</td>
+        <td>Asks client something.</td>
+    </tr>
+    <tr>
+        <td>RESPONSE</td>
+        <td>Client to Server</td>
+        <td>Client response to query.</td>
+    </tr>
+    </tbody>
+</table>
+
+<p>
+    For each type:
+</p>
+
+<table border="1" cellpadding="4">
+    <tbody>
+    <tr>
+        <th colspan="2">MESSAGE_KEYS - INFO</th>
+    </tr>
+    <tr>
+        <td>grid size</td>
+        <td>Informs the player of the playing area size.</td>
+    </tr>
+    <tr>
+        <td>num ships</td>
+        <td>Informs the player of the number of ships that will be in play.</td>
+    </tr>
+    <tr>
+        <td>ship sizes</td>
+        <td>Informs the player of the ships' sizes.</td>
+    </tr>
+    <tr>
+        <td>you miss</td>
+        <td>Informs the client that a particular shot the client made missed.</td>
+    </tr>
+    <tr>
+        <td>you hit</td>
+        <td>Informs the client that a particular shot the client made hit.</td>
+    </tr>
+    <tr>
+        <td>opponent miss</td>
+        <td>Informs the client that a particular shot the client's opponent made missed.</td>
+    </tr>
+    <tr>
+        <td>opponent hit</td>
+        <td>Informs the client that a particular shot the client's opponent made hit.</td>
+    </tr>
+    <tr>
+        <td>won game</td>
+        <td>Informs the client that they won the game.</td>
+    </tr>
+    <tr>
+        <td>lost game</td>
+        <td>Informs the client that they lost the game.</td>
+    </tr>
+    <tr>
+        <td>tie game</td>
+        <td>Informs the client that the game was tied.</td>
+    </tr>
+    <tr>
+        <td>end game</td>
+        <td>Informs the player that the game is over.</td>
+    </tr>
+    <tr>
+        <th colspan="2">MESSAGE_KEYS - QUERY</th>
+    </tr>
+    <tr>
+        <td>ship locations</td>
+        <td>Asks client where they wish to place the ships.</td>
+    </tr>
+    <tr>
+        <td>shots</td>
+        <td>Asks the client where they wish to fire this round.</td>
+    </tr>
+    <tr>
+        <th colspan="2">MESSAGE_KEYS - RESPONSE</th>
+    </tr>
+    <tr>
+        <td>ship locations</td>
+        <td>Informs the server where the client wishes to place the ships.</td>
+    </tr>
+    <tr>
+        <td>shots</td>
+        <td>Informs the server where the client wishes to fire this round.</td>
+    </tr>
+    </tbody>
+</table>
+
+<h3>Example info</h3>
+
+<pre>
+    <span class="code-comment"># informs client of 10 x 5 grid size</span>
+    |INFO|grid size|10 5|END|
+
+    <span class="code-comment"># informs client that there will be 3 ships in play per player.</span>
+    |INFO|num ships|3|END|
+
+    <span class="code-comment"># informs client that the 3 ships' sizes will be 8, 6, and 2.</span>
+    |INFO|ship size|8|6|2|END|
+
+    <span class="code-comment"># the shot you fired at (3, 4) hit</span>
+    |INFO|you hit|3 4|END|
+
+    <span class="code-comment"># the shot you fired at (4, 3) missed</span>
+    |INFO|you miss|4 3|END|
+
+    <span class="code-comment"># the shot your opponent fired at (2, 2) hit</span>
+    |INFO|opponent hit|2 2|END|
+</pre>
+
+<h3>Example query</h3>
+
+<pre>
+    |QUERY|ship locations|END|
+
+    <span class="code-comment"># asks for the client to specify their three shots for the round</span>
+    |QUERY|shots|3|END|
+
+</pre>
+
+<h3>Example response</h3>
+
+<pre>
+    <span class="code-comment"># informs the server that the client wishes to place three ships, one on each</span>
+    <span class="code-comment"># of the first three rows and all of the way to the left</span>
+    |RESPONSE|ship locations|0 0 H|0 1 H|0 2 H|END|
+
+    <span class="code-comment"># fire three shots (3, 2), (4, 1), (4, 2)</span>
+    |RESPONSE|shots|3 2|4 1|4 2|END|
+</pre>
+</body>
+</html>

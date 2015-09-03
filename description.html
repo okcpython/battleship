@@ -1,0 +1,287 @@
+<html>
+<head>
+    <title>Battleship</title>
+    <style>
+        .code-comment {
+            font-weight: bold;
+            color: blue;
+        }
+        .message-sender {
+            font-weight: bold;
+            color: #878787;
+        }
+    </style>
+</head>
+<body bgcolor="white" text="black">
+<div style="text-align: center">
+    <h1>Battleship</h1>
+
+    <h3 style="font-style: italic">Code Smackdown</h3>
+
+    <h3>Toby Nance</h3>
+</div>
+
+<p>
+    This is the standard battleship game, where each client places their ships on a
+    grid, and then fires at the opponent. You fire as many shots as you have surviving ships.
+</p>
+
+<p>
+    You start the game with 5 ships, on a <code>10 x 10</code> grid.
+</p>
+
+<p>
+    When the game starts, the server will inform you of your number of ships, the
+    size of each ship, and the size of the grid you will be working on. The server
+    will then request the placement of the ships.
+</p>
+
+<p>
+    This is due to the server being written to allow different size boards and ships,
+    but for this contest we will only be using a 10 x 10 with the ships listed below.
+</p>
+
+<p>
+    The server supports ships that range in length from 1 to 10, but for the purposes of this contest,
+    we will use the sizes used in the physical game.
+
+    There is one ship that is 2 squares long,
+    two ships 3 squares long, one ship 4 squares long, and one ship 5 squares long (2, 3, 3, 4, 5).
+</p>
+
+<p>
+    The client will respond with a list of positions and orientations, which are
+    given as <code><strong>x, y</strong></code> coordinates and a literal <code><strong>V</strong></code> or
+    <code><strong>H</strong></code> for vertical or horizontal alignment.
+    Vertically aligned ships are described by their top most grid location, and
+    horizontally aligned ships are described by their left most grid location.
+    The grid's top-left location is <code>(0, 0)</code>, and the bottom-right location is
+    <code>(WIDTH-1, HEIGHT-1)</code>.
+</p>
+
+<p>
+    So, for our 10 x 10 grid:
+</p>
+
+<table border="1" cellpadding="4">
+    <tbody>
+    <tr>
+        <td>0 0</td>
+        <td>1 0</td>
+        <td>2 0</td>
+        <td>3 0</td>
+        <td>4 0</td>
+        <td>5 0</td>
+        <td>6 0</td>
+        <td>7 0</td>
+        <td>8 0</td>
+        <td>9 0</td>
+    </tr>
+    <tr>
+        <td>0 1</td>
+        <td>1 1</td>
+        <td>2 1</td>
+        <td>3 1</td>
+        <td>4 1</td>
+        <td>5 1</td>
+        <td>6 1</td>
+        <td>7 1</td>
+        <td>8 1</td>
+        <td>9 1</td>
+    </tr>
+    <tr>
+        <td>0 2</td>
+        <td>1 2</td>
+        <td>2 2</td>
+        <td>3 2</td>
+        <td>4 2</td>
+        <td>5 2</td>
+        <td>6 2</td>
+        <td>7 2</td>
+        <td>8 2</td>
+        <td>9 2</td>
+    </tr>
+    <tr>
+        <td>0 3</td>
+        <td>1 3</td>
+        <td>2 3</td>
+        <td>3 3</td>
+        <td>4 3</td>
+        <td>5 3</td>
+        <td>6 3</td>
+        <td>7 3</td>
+        <td>8 3</td>
+        <td>9 3</td>
+    </tr>
+    <tr>
+        <td>0 4</td>
+        <td>1 4</td>
+        <td>2 4</td>
+        <td>3 4</td>
+        <td>4 4</td>
+        <td>5 4</td>
+        <td>6 4</td>
+        <td>7 4</td>
+        <td>8 4</td>
+        <td>9 4</td>
+    </tr>
+    <tr>
+        <td>0 5</td>
+        <td>1 5</td>
+        <td>2 5</td>
+        <td>3 5</td>
+        <td>4 5</td>
+        <td>5 5</td>
+        <td>6 5</td>
+        <td>7 5</td>
+        <td>8 5</td>
+        <td>9 5</td>
+    </tr>
+    <tr>
+        <td>0 6</td>
+        <td>1 6</td>
+        <td>2 6</td>
+        <td>3 6</td>
+        <td>4 6</td>
+        <td>5 6</td>
+        <td>6 6</td>
+        <td>7 6</td>
+        <td>8 6</td>
+        <td>9 6</td>
+    </tr>
+    <tr>
+        <td>0 7</td>
+        <td>1 7</td>
+        <td>2 7</td>
+        <td>3 7</td>
+        <td>4 7</td>
+        <td>5 7</td>
+        <td>6 7</td>
+        <td>7 7</td>
+        <td>8 7</td>
+        <td>9 7</td>
+    </tr>
+    <tr>
+        <td>0 8</td>
+        <td>1 8</td>
+        <td>2 8</td>
+        <td>3 8</td>
+        <td>4 8</td>
+        <td>5 8</td>
+        <td>6 8</td>
+        <td>7 8</td>
+        <td>8 8</td>
+        <td>9 8</td>
+    </tr>
+    <tr>
+        <td>0 9</td>
+        <td>1 9</td>
+        <td>2 9</td>
+        <td>3 9</td>
+        <td>4 9</td>
+        <td>5 9</td>
+        <td>6 9</td>
+        <td>7 9</td>
+        <td>8 9</td>
+        <td>9 9</td>
+    </tr>
+    </tbody>
+</table>
+
+<p>
+    Both players will have the same number of ships and the same size of ships.
+</p>
+
+<p>
+    After all ships have been placed, the game begins.
+</p>
+
+<h3>Round</h3>
+
+<p>
+    Each player gets to make N shots per turn, where N is the number of ships that
+    they have at the beginning of the turn. Once both players have announced all
+    of their shots for the turn, the server will compute what damage might have
+    been done and then report this information to each player.
+</p>
+
+<h3>End Game</h3>
+
+<p>
+    The game ends when one player has destroyed all of the other player's ships.
+    It is possible that both players will destroy their opponent in the same turn,
+    resulting in a tie.
+</p>
+
+<h3>Example Run</h3>
+
+<p>
+    Here is an example of all messages being sent back and forth for a short game on a smaller board with only 2 ships.
+</p>
+
+<pre>
+  <span class="message-sender">Server:</span>  |INFO|grid size|5 5|END|                       <span class="code-comment"># sent to all clients</span>
+  <span class="message-sender">Server:</span>  |INFO|num ships|2|END|                         <span class="code-comment"># sent to all clients</span>
+  <span class="message-sender">Server:</span>  |INFO|ship sizes|1|2|END|                      <span class="code-comment"># sent to all clients</span>
+
+  <span class="message-sender">Server:</span>  |QUERY|ship locations|END|                     <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Player1:</span> |RESPONSE|ship locations|0 0 V|1 0 H|END|      <span class="code-comment"># sent from player 1 to the server</span>
+
+  <span class="message-sender">Server:</span>  |QUERY|ship locations|END|                     <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Player2:</span> |RESPONSE|ship locations|0 2 H|0 3 H|END|      <span class="code-comment"># sent from player 2 to the server</span>
+
+  <span class="code-comment">######## Round 1</span>
+  <span class="message-sender">Server:</span>  |QUERY|shots|2|END|                            <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Player1:</span> |RESPONSE|shots|0 0|0 3|END|                   <span class="code-comment"># sent from player 1 to the server</span>
+
+  <span class="message-sender">Server:</span>  |QUERY|shots|2|END|                            <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Player2:</span> |RESPONSE|shots|0 0|0 1|END|                   <span class="code-comment"># sent from player 2 to the server</span>
+
+  <span class="message-sender">Server:</span>  |INFO|you miss|0 0|END|                        <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Server:</span>  |INFO|you hit|0 3|END|                         <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent hit|0 0|END|                    <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent miss|0 1|END|                   <span class="code-comment"># sent to player 1</span>
+
+  <span class="message-sender">Server:</span>  |INFO|you hit|0 0|END|                         <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Server:</span>  |INFO|you miss|0 1|END|                        <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent miss|0 0|END|                   <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent hit|0 3|END|                    <span class="code-comment"># sent to player 2</span>
+
+  <span class="code-comment">######## Round 2 - player1's smaller ship has been destroyed</span>
+  <span class="message-sender">Server:</span>  |QUERY|shots|1|END|                            <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Player1:</span> |RESPONSE|shots|1 3|END|                       <span class="code-comment"># sent from player 1 to the server</span>
+
+  <span class="message-sender">Server:</span>  |QUERY|shots|2|END|                            <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Player2:</span> |RESPONSE|shots|1 0|1 1|END|                   <span class="code-comment"># sent from player 2 to the server</span>
+
+  <span class="message-sender">Server:</span>  |INFO|you hit|1 3|END|                         <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent hit|0 0|END|                    <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent miss|0 1|END|                   <span class="code-comment"># sent to player 1</span>
+
+  <span class="message-sender">Server:</span>  |INFO|you hit|1 0|END|                         <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Server:</span>  |INFO|you miss|1 1|END|                        <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent hit|1 3|END|                    <span class="code-comment"># sent to player 2</span>
+
+  <span class="code-comment">######## Round 3 - player2's larger ship has been destroyed</span>
+  <span class="message-sender">Server:</span>  |QUERY|shots|1|END|                            <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Player1:</span> |RESPONSE|shots|2 2|END|                       <span class="code-comment"># sent from player 1 to the server</span>
+
+  <span class="message-sender">Server:</span>  |QUERY|shots|1|END|                            <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Player2:</span> |RESPONSE|shots|2 1|END|                       <span class="code-comment"># sent from player 2 to the server</span>
+
+  <span class="message-sender">Server:</span>  |INFO|you miss|2 2|END|                        <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent hit|2 1|END|                    <span class="code-comment"># sent to player 1</span>
+
+  <span class="message-sender">Server:</span>  |INFO|you hit|2 1|END|                         <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Server:</span>  |INFO|opponent miss|2 2|END|                   <span class="code-comment"># sent to player 2</span>
+
+  <span class="code-comment">##### Game Over</span>
+  <span class="message-sender">Server:</span>  |INFO|lost game|END|                           <span class="code-comment"># sent to player 1</span>
+  <span class="message-sender">Server:</span>  |INFO|won game|END|                            <span class="code-comment"># sent to player 2</span>
+  <span class="message-sender">Server:</span>  |INFO|end game|END|                            <span class="code-comment"># sent to all clients</span>
+
+</pre>
+
+
+</body>
+</html>
