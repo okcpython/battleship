@@ -1,23 +1,51 @@
+import sys
 TOTAL_ZERO = False
+
+
+########################################################################
+def make_empty_results(names):
+    grid = {}
+    for name in names:
+        grid[name] = {}
+        for name2 in names:
+            grid[name][name2] = 0
+    return grid
+
+
+########################################################################
+def print_grid(grid, names):
+    row_template = "{:>15}" * (len(names) + 2)
+    header_data = [""] + names + ["Total"]
+    print row_template.format(*header_data)
+    for name in names:
+        row_data = []
+        total = 0
+        row_data.append(name)
+        for name2 in names:
+            if name2 == name:
+                row_data.append("--")
+            else:
+                val = grid[name][name2]
+                total += val
+                row_data.append(val)
+        row_data.append(total)
+        print row_template.format(*row_data)
 
 #######################################################################
 def main():
     players = set()
-    for line in file("results.txt"):
+    for line in file(sys.argv[1]):
         player1, player2, result = line.split("\t")
         #result = int(result)
         players.add(player1)
         players.add(player2)
 
     ### I've got all players, generate the table
-    grid = {}
-    for name in players:
-        grid[name] = {}
-        for name2 in players:
-            grid[name][name2] = 0
+    grid_wins = make_empty_results(players)
+    grid_zero = make_empty_results(players)
 
     ### now populate the table
-    for line in file("results.txt"):
+    for line in file(sys.argv[1]):
         player1, player2, result = line.split("\t")
         result = int(result)
 
@@ -32,32 +60,24 @@ def main():
         ### players more but disguises how many runs there were, while the
         ### second obscures the scores a little bit but preserves more
         ### information.
-        if TOTAL_ZERO:
-            grid[player1][player2] += result
-            grid[player2][player1] -= result
+        grid_zero[player1][player2] += result
+        grid_zero[player2][player1] -= result
+        if result > 0:
+            grid_wins[player1][player2] += 1
         else:
-            if result > 0:
-                grid[player1][player2] += 1
-            else:
-                grid[player2][player1] += 1
+            grid_wins[player2][player1] += 1
 
     names = list(players)
     names.sort()
+    print "\nJUST WINS:"
+    print_grid(grid_wins, names)
+    print ""
+    print "-" * ((len(names) + 2) * 15)
+    print "\nWINS AND LOSSES:"
+    print_grid(grid_zero, names)
+    print ""
 
-    ### write header
-    out_file = file("results.csv", "w")
-    out_file.write("\t")
-    out_file.write("\t".join(names))
-    out_file.write("\tTotal\n")
-
-    ### now write rows
-    for name in names:
-        total = 0
-        values = []
-        for name2 in names:
-            values.append(str(grid[name][name2]))
-            total += grid[name][name2]
-        out_file.write("%s\t%s\t%s\n" % (name, "\t".join(values), str(total)))
 
 #######################################################################
-main()
+if __name__ == "__main__":
+    main()

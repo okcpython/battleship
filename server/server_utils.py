@@ -2,7 +2,7 @@ import logging
 import subprocess
 
 USE_TIMEOUT = False  # Not available on Windows, but keeps from waiting on the client forever
-
+logger = logging.getLogger(__name__)
 
 ########################################################################
 class ClientErrorException(Exception):
@@ -66,17 +66,23 @@ class ClientProxy(object):
         self.name = name
         self.client = client
         self.ships = []
+        self.messages_to_client_log = open("%s.log" % self.name, "w")
 
     ####################################################################
-    def send(self, line):
+    def send(self, line, raise_exceptions=True):
         line = line.strip() + "\n"
-        logging.info("From Server to %s: %s" % (self.name, line.strip()))
+        logger.info("From Server to %s: %s" % (self.name, line.strip()))
+        self.messages_to_client_log.write(line)
+        self.messages_to_client_log.flush()
         try:
             self.client.stdin.write(line)
             self.client.stdin.flush()
         except Exception, e:
-            logging.error("error with sending to client (%s): %s" % (self.name, str(e)))
-            raise ClientErrorException(loser=self.name, message="Exception sending to (%s)" % self.name)
+            self.messages_to_client_log.write("<previous message crashed>\n")
+            self.messages_to_client_log.flush()
+            logger.error("error with sending to client (%s): %s" % (self.name, str(e)))
+            if raise_exceptions:
+                raise ClientErrorException(loser=self.name, message="Exception sending to (%s)" % self.name)
 
     ####################################################################
     def receive(self):
@@ -86,7 +92,7 @@ class ClientProxy(object):
             try:
                 return stdout_read().strip()
             except timeout.TimeoutFunctionException:
-                logging.error("Client taking too long to respond (%s)" % self.name)
+                logger.error("Client taking too long to respond (%s)" % self.name)
                 raise ClientErrorException(loser=self.name, message="Client taking too long to respond (%s)" % self.name)
         else:
             return self.client.stdout.readline().strip()
@@ -101,8 +107,11 @@ class Player(object):
 
     ###################################################################
     def getClientProxy(self, other):
-        s = subprocess.Popen(self.popen_args + [self.name, other.name], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.cwd)
+        args = self.popen_args + [self.name, other.name]
+        #logger.debug("getClientProxy args: %s", args)
+        s = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.cwd)
         return ClientProxy(self.name, s)
+
 
 #######################################################################
 class NoisyPlayer(Player):

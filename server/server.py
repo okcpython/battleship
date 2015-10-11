@@ -1,8 +1,7 @@
 import logging
-import logging.config
 from server_utils import ClientErrorException, SimpleObserver
 
-logging.config.fileConfig("logger.config")
+logger = logging.getLogger(__name__)
 
 
 #########################################################################
@@ -16,9 +15,9 @@ class BattleshipServer(object):
         self.ship_sizes = ship_sizes
         self.observer = SimpleObserver()
         self.observer.set_players(player1.name, player2.name)
-        logging.info("*" * 80)
-        logging.info("board size:%d x %d" % (self.width, self.height))
-        logging.info("ship sizes: %s" % (str(self.ship_sizes)))
+        logger.info("*" * 80)
+        logger.info("board size:%d x %d" % (self.width, self.height))
+        logger.info("ship sizes: %s" % (str(self.ship_sizes)))
 
     ####################################################################
     def run(self):
@@ -71,30 +70,30 @@ class BattleshipServer(object):
     ####################################################################
     def report_winner(self, player_1_alive, player_2_alive):
         if player_1_alive and not player_2_alive:
-            self.player1.send("|INFO|won game|END|")
-            self.player2.send("|INFO|lost game|END|")
+            self.player1.send("|INFO|won game|END|", raise_exceptions=False)
+            self.player2.send("|INFO|lost game|END|", raise_exceptions=False)
             self.observer.send("|end game|%s won|END|" % self.player1.name)
-            logging.info("%s won the game" % self.player1.name)
+            logger.info("%s won the game" % self.player1.name)
             return self.player1.name
         elif player_2_alive and not player_1_alive:
-            self.player2.send("|INFO|won game|END|")
-            self.player1.send("|INFO|lost game|END|")
-            logging.info("%s won the game" % self.player2.name)
+            self.player2.send("|INFO|won game|END|", raise_exceptions=False)
+            self.player1.send("|INFO|lost game|END|", raise_exceptions=False)
+            logger.info("%s won the game" % self.player2.name)
             self.observer.send("|end game|%s won|END|" % self.player2.name)
             return self.player2.name
         elif player_1_alive is False and player_2_alive is False:
             self.send_all_clients("|INFO|tie game|END|")
-            logging.info("The game was tied")
+            logger.info("The game was tied")
             self.observer.send("|end game|tie game|END|")
             return True
 
     ####################################################################
     def get_player_info(self, player, tag):
         line = player.receive()
-        logging.info("%s: %s", player.name, line)
+        logger.info("%s: %s", player.name, line)
 
         if not (line.startswith("|RESPONSE|" + tag + "|") and line.endswith("|END|")):
-            logging.error("bad line from client: (%s)", line)
+            logger.error("bad line from client '%s': (%s)", player.name, line)
             raise ClientErrorException(loser=player.name, message="bad line from client: (%s)" % line)
         return self.parse_line_into_value_sets(line)
 
@@ -111,7 +110,7 @@ class BattleshipServer(object):
         player.send("|QUERY|ship locations|END|")
         ship_locations = self.get_player_info(player, "ship locations")
         if len(ship_locations) != len(self.ship_sizes):
-            logging.error("incorrect number of ships from client %s: Expected %d but got %d (%s)", player.name, len(self.ship_sizes), len(ship_locations), ship_locations)
+            logger.error("incorrect number of ships from client %s: Expected %d but got %d (%s)", player.name, len(self.ship_sizes), len(ship_locations), ship_locations)
             raise ClientErrorException(loser=player.name, message="incorrect number of ships from client %s: (%s)" % (player.name, str(ship_locations)))
 
         self.observer.send_ship_locations(player.name, ship_locations)
@@ -129,10 +128,10 @@ class BattleshipServer(object):
                 ship[x, y] = True
                 if (x, y) in used_locations:
                     ### already used spot
-                    logging.error("overlapping ships from client %s: (%s)", player.name, ship_locations)
+                    logger.error("overlapping ships from client %s: (%s)", player.name, ship_locations)
                     raise ClientErrorException(loser=player.name, message="overlapping ships from client %s: (%s)" % (player.name, str(ship_locations)))
                 if not (0 <= x < self.width) or not (0 <= y < self.height):
-                    logging.error("ship out-of-bounds from client %s: (%s)", player.name, ship_locations)
+                    logger.error("ship out-of-bounds from client %s: (%s)", player.name, ship_locations)
                     raise ClientErrorException(loser=player.name, message="ship out-of-bounds from client %s: (%s)" % (player.name, str(ship_locations)))
 
                 used_locations.add((x, y))
@@ -150,12 +149,12 @@ class BattleshipServer(object):
         player_shots = self.get_player_info(player, "shots")
         self.observer.send_shots(player.name, player_shots)
         if len(player_shots) > num_shots_allowed:
-            logging.error("bad number of shots from client %s: Expected %d but got %d (%s)", player.name, num_shots_allowed, len(player_shots), player_shots)
+            logger.error("bad number of shots from client %s: Expected %d but got %d (%s)", player.name, num_shots_allowed, len(player_shots), player_shots)
             raise ClientErrorException(loser=player.name, message="bad number of shots from client %s: (%s)" % (player.name, str(player_shots)))
         try:
             player_shots = [(int(x), int(y)) for (x, y) in player_shots]
         except:
-            logging.error("bad line from client %s: (%s)", player.name, player_shots)
+            logger.error("bad line from client %s: (%s)", player.name, player_shots)
             raise ClientErrorException(loser=player.name, message="bad line from client %s: (%s)" % (player.name, str(player_shots)))
         return player_shots
 
@@ -172,13 +171,13 @@ class BattleshipServer(object):
         for location in shots:
             for ship in shot_at_player.ships:
                 if location in ship:
-                    logging.info("%s shot %s at (%d, %d)" % (shooting_player.name, shot_at_player.name, location[0], location[1]))
+                    logger.info("%s shot %s at (%d, %d)" % (shooting_player.name, shot_at_player.name, location[0], location[1]))
                     shot_at_player.send("|INFO|opponent hit|%d %d|END|" % location)
                     shooting_player.send("|INFO|you hit|%d %d|END|" % location)
                     ship[location] = False
                     break
             else:
-                logging.info("%s misses %s at (%d, %d)" % (shooting_player.name, shot_at_player.name, location[0], location[1]))
+                logger.info("%s misses %s at (%d, %d)" % (shooting_player.name, shot_at_player.name, location[0], location[1]))
                 shot_at_player.send("|INFO|opponent miss|%d %d|END|" % location)
                 shooting_player.send("|INFO|you miss|%d %d|END|" % location)
 
@@ -196,7 +195,7 @@ class BattleshipServer(object):
 
     ####################################################################
     def send_all_clients(self, line):
-        logging.info(line)
+        logger.info(line)
         for c in self.players:
             c.send(line)
 
@@ -206,4 +205,3 @@ class BattleshipServer(object):
             self.send_all_clients("|INFO|end game|END|")
         except:
             pass
-        logging.shutdown()
